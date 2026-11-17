@@ -44,19 +44,22 @@ const sa2 = JSON.parse(fs.readFileSync(path.join(B, 'raw/abs/sa2-adelaide.geojso
 const rows = fs.readFileSync(path.join(B, 'tables/sa2.csv'), 'utf8').trim().split('\n'); const head = rows.shift().split(',');
 const byCode = new Map(rows.map((l) => { const v = l.split(','), o = {}; head.forEach((h, i) => { o[h] = v[i]; }); return [o.sa2_code, o]; }));
 const ar = D.createDataLayer(p, { name: 'Areas (SA2)', prefix: 'A', digits: 3 });
-const NUM = ['residents', 'places_within_20_free', 'places_within_20_am', 'places_within_20_pt', 'share_all_eight_free', 'mean_min_city_free', 'mean_min_city_am', 'mean_min_city_pt'];
+const NUM = ['residents', 'half_or_more_pct', 'half_or_more_rush_pct', 'places_within_20_free', 'places_within_20_am', 'places_within_20_pt', 'share_all_eight_free', 'mean_min_city_free', 'mean_min_city_am', 'mean_min_city_pt'];
 D.addField(p, { layer: ar.id, name: 'name', type: 'text' });
 for (const k of NUM) D.addField(p, { layer: ar.id, name: k, type: 'number' });
 const shapes = [];
 for (const ft of sa2.features) {
     const o = byCode.get(String(ft.properties.code)); if (!o) continue;
     const polys = ft.geometry.type === 'Polygon' ? [ft.geometry.coordinates] : ft.geometry.coordinates;
-    const props = { name: ft.properties.name, ...Object.fromEntries(NUM.map((k) => [k, o[k] === '' ? null : +o[k]])) };
+    // (the headline: the share of residents with half the places or more, 4 of the 8, within 20 minutes, in per cent)
+    const src = { ...o, half_or_more_pct: Math.round(1000 * o.share_half_free) / 10, half_or_more_rush_pct: Math.round(1000 * o.share_half_am) / 10 };
+    const props = { name: ft.properties.name, ...Object.fromEntries(NUM.map((k) => [k, src[k] === '' ? null : +src[k]])) };
     for (const pl of polys) shapes.push({ ring: pl[0].slice(0, -1).map(([ln, la]) => f.toM([la, ln])), holes: pl.slice(1).map((h) => h.slice(0, -1).map(([ln, la]) => f.toM([la, ln]))), key: String(ft.properties.code), props });
 }
 D.addDataShapes(p, { layer: ar.id, order: 'as-is', shareKeys: true, shapes });
 ar.attribution = 'Areas and residents: Australian Bureau of Statistics, ASGS 2021 and 2021 Census, CC BY 4.0';
-S.setDataStyle(p, { layer: ar.id, by: 'field:places_within_20_free', palette: 'viridis' });
+// coloured by the share with half the places or more, split at 50% (the saying holds for most residents, or not)
+S.setDataStyle(p, { layer: ar.id, by: 'field:half_or_more_pct', method: 'manual', breaks: [10, 25, 50, 75, 90, 100], palette: 'custom', custom: { type: 'seq', colours: ['#6f90f6', '#60a6f8', '#6ed0fa', '#ffdd85', '#ffb54e', '#ff7448'] } });
 // by car from the GPO: the roads with their rules, at the speed limit and in the morning rush hour, in the Flow look
 const els = readOpl(path.join(B, 'raw/osm/roads.opl'));
 const net = DT.networkFromElements(els, { rules: true, model: 'limits' });
@@ -86,7 +89,7 @@ for (const [tag, name, peak] of [['free', 'By car to the GPO: at the speed limit
 // the keys stay off the map (the places are named in their tables; the areas and bands by their colours)
 for (const dl of p.dataLayers) dl.style = { ...(dl.style || {}), labels: 'none' };
 // views
-VW.addView(p, { name: 'Greater Adelaide', mode: 'plan', note: `Within 20 minutes by car of all eight places, at the speed limit with no traffic: ${Math.round(N.all.free.within_20 * 1000) / 10}% of residents. In the morning rush hour (TomTom Traffic Index 2025): none.`, plan: { center: [-34.93, 138.64], zoom: 10 } });
+VW.addView(p, { name: 'Greater Adelaide', mode: 'plan', note: `Half the eight places or more within 20 minutes by car: ${Math.round(N.all.free.half_20 * 1000) / 10}% of residents at the speed limit with no traffic, ${Math.round(N.all.am.half_20 * 1000) / 10}% in the morning rush hour (TomTom Traffic Index 2025), ${Math.round(N.all.pt.half_20 * 1000) / 10}% by public transport. All eight: ${Math.round(N.all.free.within_20 * 1000) / 10}%, none and none.`, plan: { center: [-34.93, 138.64], zoom: 10 } });
 VW.addView(p, { name: 'The city', mode: 'plan', note: `Within 20 minutes of the GPO by car: ${Math.round(N.destinations.cbd.runs.free.within_20 * 100)}% of residents at the speed limit with no traffic, ${Math.round(N.destinations.cbd.runs.am.within_20 * 100)}% in the morning rush hour (TomTom 2025), ${Math.round(N.destinations.cbd.runs.pt.within_20 * 1000) / 10}% by public transport.`, plan: { center: GPO, zoom: 12 } });
 VW.addView(p, { name: 'The south coast', mode: 'plan', note: 'Beaches are close in the south; the city, the airport and the Hills are not.', plan: { center: [-35.12, 138.52], zoom: 11 } });
 VW.addView(p, { name: 'The Hills', mode: 'plan', note: 'The Hills are within 20 minutes for the eastern suburbs and the Hills towns; the beach and the airport are not.', plan: { center: [-35.0, 138.75], zoom: 11 } });

@@ -10,8 +10,14 @@ How far by car (with road rules) and How far by public transport.
 
 ## The answer
 
-Within 20 minutes of all eight: **10.1%** of residents at the speed limit with no traffic,
-**0.0%** in the morning rush hour, **0.0%** by public transport.
+Read as a general saying, the test is whether at least half the places (4 of the 8) are within 20 minutes:
+**71.8%** of residents at the speed limit with no traffic (the typical resident has 5 of the 8),
+**43.1%** in the morning rush hour (typical 3), **1.2%** by public transport.
+Thresholds either side: 3 or more 95.2% / 74.3% / 2.0%; 5 or more
+54.2% / 23.5% / 0.6% (speed limit / rush hour / public transport).
+Read literally, all eight: 10.1%, 0.0% and 0.0%.
+
+Residents by how many of the 8 are within 20 minutes (0 to 8), at the speed limit: 0.3%, 0.7%, 3.9%, 23.4%, 17.5%, 9.7%, 8.2%, 26.2%, 10.1%.
 
 | Within 20 minutes of | Car, speed limit | Car, rush hour | Public transport |
 |---|---|---|---|
@@ -23,6 +29,7 @@ Within 20 minutes of all eight: **10.1%** of residents at the speed limit with n
 | The city | 48.3% | 21.5% | 2.1% |
 | The airport | 39.6% | 15.1% | 0.3% |
 | The Hills | 24.6% | 8.6% | 0.2% |
+| Half or more (4 of 8) | 71.8% | 43.1% | 1.2% |
 | All eight | 10.1% | 0.0% | 0.0% |
 
 ## Method
@@ -45,7 +52,7 @@ Within 20 minutes of all eight: **10.1%** of residents at the speed limit with n
 - `data/mesh_block_minutes.csv`: minutes per mesh block. Columns `<run>_<place>`, runs `free` (speed limit, no traffic),
   `am`, `pm` (rush hours), `typical` (Plotlay's older typical speeds, no lights or turn bans), `pt` (public transport);
   `free_hospital9`, `am_hospital9`: emergency departments with the Women's and Children's, Gawler and Mount Barker. Empty: not reached.
-- `data/sa2.csv`: by ABS SA2 area. `data/shares_by_place.csv`: the shares. `data/places.csv`: the places used. `data/numbers.json`: every number on the page.
+- `data/sa2.csv`: by ABS SA2 area (`share_half_free`, `share_half_am`, `share_half_pt`: residents with 4 or more of the 8). `data/shares_by_place.csv`: the shares. `data/places.csv`: the places used. `data/numbers.json`: every number on the page.
 - `python/adelaide_20_minutes.ipynb`: reads `../data` and gets the shares again.
 - `pipeline/`: the code that made it (Node with Plotlay's engine, Python for the numbers and pictures).
 

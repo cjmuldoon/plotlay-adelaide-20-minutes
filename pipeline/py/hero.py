@@ -338,10 +338,10 @@ def grid(outdir, run='free'):
     dr = ImageDraw.Draw(img)
     text(dr, (28, 26), 'Eight places, 20 minutes by car', FONT(COND_B, 46))
     x0, y0 = 2 * pw + 22, top + 2 * ph + 16; a = N['all']
-    text(dr, (x0, y0), 'All eight', FONT(COND_B, 30))
-    text(dr, (x0, y0 + 36), f"{a['free']['within_20'] * 100:.0f}%", FONT(COND_B, 76), fill=(255, 196, 96))
-    text(dr, (x0, y0 + 120), 'within 20 min', FONT(SANS, 19), fill=(225, 230, 240))
-    text(dr, (x0, y0 + 146), f"Rush hour: {a['am']['within_20'] * 100:.0f}%", FONT(SANS, 19), fill=(150, 200, 250))
+    text(dr, (x0, y0), 'Half or more', FONT(COND_B, 30))
+    text(dr, (x0, y0 + 36), f"{a['free']['half_20'] * 100:.0f}%", FONT(COND_B, 76), fill=(255, 196, 96))
+    text(dr, (x0, y0 + 120), '4 of 8 within 20 min', FONT(SANS, 19), fill=(225, 230, 240))
+    text(dr, (x0, y0 + 146), f"Rush hour: {a['am']['half_20'] * 100:.0f}%", FONT(SANS, 19), fill=(150, 200, 250))
     text(dr, (x0, y0 + 190), 'Speed limit, no traffic.', FONT(SANS, 16), fill=(180, 190, 206))
     text(dr, (x0, y0 + 212), 'Rush hour: TomTom 2025.', FONT(SANS, 16), fill=(180, 190, 206))
     dr.text((S - 16, S - 10), 'OpenStreetMap (ODbL) · TomTom Traffic Index 2025 · Plotlay Ink, Protomaps · ABS 2021 Census · Made in Plotlay', font=FONT(SANS, 13), fill=(150, 162, 182), anchor='rs')
@@ -363,7 +363,7 @@ if __name__ == '__main__' and sys.argv[2] == 'grid': grid(sys.argv[3])
 def cards(outdir):
     """the opener (a big number, frame one is the thumbnail) and the end card, square and wide"""
     os.makedirs(outdir, exist_ok=True)
-    a = N['all']['free']['within_20']
+    a = N['all']['free']['half_20']; am = N['all']['am']['half_20']; pt = N['all']['pt']['half_20']
     for (W, H, tag) in ((1080, 1080, '1x1'), (1920, 1080, '16x9')):
         k = H / 1080
         for kind in ('open', 'end'):
@@ -373,13 +373,13 @@ def cards(outdir):
             if kind == 'open':
                 text(d, (x, round(150 * k)), 'IS EVERYTHING IN ADELAIDE 20 MINUTES AWAY?', FONT(SANS_SB, round(30 * k)), fill=(170, 186, 210))
                 text(d, (x - 8, round(200 * k)), f'{a * 100:.0f}%', FONT(COND_B, round(330 * k)), fill=(255, 196, 96))
-                text(d, (x, round(560 * k)), 'of Adelaideans have all eight places', FONT(SANS_SB, round(50 * k)))
-                text(d, (x, round(626 * k)), 'within a 20-minute drive', FONT(SANS_SB, round(50 * k)))
-                text(d, (x, round(730 * k)), 'At the speed limit, no traffic. In the rush hour: none.', FONT(SANS, round(34 * k)), fill=(150, 205, 250))
+                text(d, (x, round(560 * k)), 'of Adelaideans have at least half', FONT(SANS_SB, round(50 * k)))
+                text(d, (x, round(626 * k)), 'the eight places within 20 minutes', FONT(SANS_SB, round(50 * k)))
+                text(d, (x, round(730 * k)), f'At the speed limit, no traffic. Rush hour: {am * 100:.0f}%.', FONT(SANS, round(34 * k)), fill=(150, 205, 250))
             else:
                 text(d, (x, round(230 * k)), 'Everything 20 minutes away?', FONT(COND_B, round(72 * k)))
-                for i, (ln, col) in enumerate((('1 in 10, at the speed limit', (255, 214, 120)), ('with no traffic.', (255, 214, 120)),
-                                               ('Rush hour or public transport:', (150, 205, 250)), ('nobody.', (150, 205, 250)))):
+                for i, (ln, col) in enumerate(((f'At least half the places for {a * 100:.0f}%,', (255, 214, 120)), ('at the speed limit with no traffic.', (255, 214, 120)),
+                                               (f'Rush hour: {am * 100:.0f}%.', (150, 205, 250)), (f'Public transport: {pt * 100:.0f}%.', (150, 205, 250)))):
                     text(d, (x, round((340 + i * 52 + (24 if i >= 2 else 0)) * k)), ln, FONT(SANS_SB, round(40 * k)), fill=col)
                 text(d, (x, round(640 * k)), 'Made in Plotlay', FONT(COND_B, round(60 * k)))
                 text(d, (x, round(720 * k)), 'getplotlay.com/showcase/adelaide-20-minutes', FONT(SANS, round(34 * k)), fill=(200, 210, 224))

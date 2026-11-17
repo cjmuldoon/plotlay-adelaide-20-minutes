@@ -24,11 +24,13 @@ step() {
             python3 -I "$HERE/py/hero.py" "$HERE" frames free wide "$HERE/frames/hero_free_16x9"
             python3 -I "$HERE/py/hero.py" "$HERE" compare "$HERE/frames/compare_16x9"; python3 -I "$HERE/py/hero.py" "$HERE" compare1 "$HERE/frames/compare_1x1" ;;
     cards) python3 -I "$HERE/py/hero.py" "$HERE" grid "$HERE/stills"; python3 -I "$HERE/py/hero.py" "$HERE" cards "$HERE/stills" ;;
+    mbmap) python3 -I "$HERE/py/mbmap.py" "$HERE" "$OUTPUTS/transit-45-minutes-build/raw/abs/mb_4GADE" "$HERE/stills"
+           python3 -c "import sys; from PIL import Image; [Image.open(f'{sys.argv[1]}/mbmap_{r}_{t}.png').convert('RGB').save(f'{sys.argv[2]}/mbmap_{r}_{t}.jpg', quality=86) for r in ('free', 'am') for t in ('16x9', '1x1')]" "$HERE/stills" "$PAGE/img" ;;
     encode) "$HERE/scripts/encode.sh" "$HERE" "$PAGE/img" ;;
     page) python3 -I "$HERE/py/page.py" "$HERE" "$PAGE" ;;
     package) python3 -I "$HERE/py/package.py" "$HERE" "$PAGE"; "$NB/python" -I "$HERE/py/gen_notebook.py" "$HERE/repo-src"
              (cd "$HERE/repo-src/python" && "$NB/python" -m nbconvert --to notebook --execute --inplace adelaide_20_minutes.ipynb) ;;
-    all) for s in run numbers grid example bases app frames cards encode page package; do step $s; done ;;
+    all) for s in run numbers grid example bases app frames cards mbmap encode page package; do step $s; done ;;
     *) echo "unknown step $1"; exit 1 ;;
   esac
 }

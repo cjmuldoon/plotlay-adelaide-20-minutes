@@ -32,7 +32,7 @@ def scrub(src, dst):
     assert P not in t and '/Us' + 'ers/' not in t, src
     open(dst, 'w').write(t); shutil.copymode(src, dst)
 for f in ('opl.mjs', 'destinations.mjs', 'run.mjs', 'grid.mjs', 'bases.mjs', 'osm_extract.sh', 'encode.sh'): scrub(os.path.join(B, 'scripts', f), os.path.join(R, 'pipeline/scripts', f))
-for f in ('numbers.py', 'hero.py', 'mb_sa2.py', 'destinations_py.py', 'page.py', 'package.py', 'gen_notebook.py'): scrub(os.path.join(B, 'py', f), os.path.join(R, 'pipeline/py', f))
+for f in ('numbers.py', 'hero.py', 'mb_sa2.py', 'destinations_py.py', 'page.py', 'package.py', 'gen_notebook.py', 'mbmap.py'): scrub(os.path.join(B, 'py', f), os.path.join(R, 'pipeline/py', f))
 for f in ('make_example.mjs', 'pipeline.sh'):
     if os.path.exists(os.path.join(B, f)): scrub(os.path.join(B, f), os.path.join(R, 'pipeline', f))
 pc = lambda x: f'{x * 100:.1f}%'
@@ -50,12 +50,19 @@ How far by car (with road rules) and How far by public transport.
 
 ## The answer
 
-Within 20 minutes of all eight: **{pc(A['free']['within_20'])}** of residents at the speed limit with no traffic,
-**{pc(A['am']['within_20'])}** in the morning rush hour, **{pc(A['pt']['within_20'])}** by public transport.
+Read as a general saying, the test is whether at least half the places (4 of the 8) are within 20 minutes:
+**{pc(A['free']['half_20'])}** of residents at the speed limit with no traffic (the typical resident has {A['free']['median_count']:.0f} of the 8),
+**{pc(A['am']['half_20'])}** in the morning rush hour (typical {A['am']['median_count']:.0f}), **{pc(A['pt']['half_20'])}** by public transport.
+Thresholds either side: 3 or more {pc(A['free']['at_least_3'])} / {pc(A['am']['at_least_3'])} / {pc(A['pt']['at_least_3'])}; 5 or more
+{pc(A['free']['at_least_5'])} / {pc(A['am']['at_least_5'])} / {pc(A['pt']['at_least_5'])} (speed limit / rush hour / public transport).
+Read literally, all eight: {pc(A['free']['within_20'])}, {pc(A['am']['within_20'])} and {pc(A['pt']['within_20'])}.
+
+Residents by how many of the 8 are within 20 minutes (0 to 8), at the speed limit: {', '.join(f'{x * 100:.1f}%' for x in A['free']['count_dist'])}.
 
 | Within 20 minutes of | Car, speed limit | Car, rush hour | Public transport |
 |---|---|---|---|
 {rows}
+| Half or more (4 of 8) | {pc(A['free']['half_20'])} | {pc(A['am']['half_20'])} | {pc(A['pt']['half_20'])} |
 | All eight | {pc(A['free']['within_20'])} | {pc(A['am']['within_20'])} | {pc(A['pt']['within_20'])} |
 
 ## Method
@@ -78,7 +85,7 @@ Within 20 minutes of all eight: **{pc(A['free']['within_20'])}** of residents at
 - `data/mesh_block_minutes.csv`: minutes per mesh block. Columns `<run>_<place>`, runs `free` (speed limit, no traffic),
   `am`, `pm` (rush hours), `typical` (Plotlay's older typical speeds, no lights or turn bans), `pt` (public transport);
   `free_hospital9`, `am_hospital9`: emergency departments with the Women's and Children's, Gawler and Mount Barker. Empty: not reached.
-- `data/sa2.csv`: by ABS SA2 area. `data/shares_by_place.csv`: the shares. `data/places.csv`: the places used. `data/numbers.json`: every number on the page.
+- `data/sa2.csv`: by ABS SA2 area (`share_half_free`, `share_half_am`, `share_half_pt`: residents with 4 or more of the 8). `data/shares_by_place.csv`: the shares. `data/places.csv`: the places used. `data/numbers.json`: every number on the page.
 - `python/adelaide_20_minutes.ipynb`: reads `../data` and gets the shares again.
 - `pipeline/`: the code that made it (Node with Plotlay's engine, Python for the numbers and pictures).
 

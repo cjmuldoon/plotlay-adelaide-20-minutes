@@ -33,7 +33,7 @@ def share(run, place, limit=20):
 table = pd.DataFrame({run: {p: share(run, p) for p in PLACES} for run in ['free', 'am', 'pm', 'pt']})
 (table * 100).round(1).sort_values('free', ascending=False)
 ''')
-md('## All eight')
+md('## All eight: the strict reading')
 code('''
 def all_eight(run, limit=20):
     ok = pd.concat([mb[f'{run}_{p}'] <= limit for p in PLACES], axis=1).all(axis=1)
@@ -41,19 +41,28 @@ def all_eight(run, limit=20):
 for run in ['free', 'am', 'pm', 'typical', 'pt']:
     print(f'{run:8s} {all_eight(run) * 100:5.1f}% within 20 minutes of all eight')
 ''')
-md('## How many of the eight, at the speed limit')
+md('## How many of the eight: the headline is half or more (4 of 8)')
 code('''
-count = sum((mb[f'free_{p}'] <= 20).astype(int) for p in PLACES)
-(mb.groupby(count).residents.sum() / total * 100).round(1).rename('share of residents (%)')
+def counts(run): return sum((mb[f'{run}_{p}'] <= 20).astype(int) for p in PLACES)
+dist = pd.DataFrame({run: mb.groupby(counts(run)).residents.sum().reindex(range(9), fill_value=0) / total * 100 for run in ['free', 'am', 'pt']})
+dist.round(1)
 ''')
-md('## Where it holds: areas where most residents have all eight')
+code('''
+for run in ['free', 'am', 'pm', 'typical', 'pt']:
+    c = counts(run)
+    o = c.sort_values(); w = mb.residents[o.index].cumsum(); median = o[w >= total / 2].iloc[0]
+    print(f"{run:8s} 3+ {(mb.residents * (c >= 3)).sum() / total * 100:5.1f}%   4+ {(mb.residents * (c >= 4)).sum() / total * 100:5.1f}%   5+ {(mb.residents * (c >= 5)).sum() / total * 100:5.1f}%   median {median} of 8")
+''')
+md('## Where it holds: areas where most residents have half the places or more')
 code('''
 sa2 = pd.read_csv(f'{DATA}/sa2.csv', dtype={'sa2_code': str})
-sa2[sa2.residents >= 3000].sort_values('share_all_eight_free', ascending=False)[['sa2_name', 'residents', 'share_all_eight_free', 'places_within_20_free', 'mean_min_city_free']].head(10)
+big = sa2[sa2.residents >= 3000]
+print((big.share_half_free >= 0.5).sum(), 'of', len(big), 'areas hold at the speed limit;', (big.share_half_am >= 0.5).sum(), 'in the rush hour')
+big.sort_values(['share_half_free', 'places_within_20_free'], ascending=False)[['sa2_name', 'residents', 'share_half_free', 'share_half_am', 'places_within_20_free']].head(10)
 ''')
 md('## Where it fails')
 code('''
-sa2[sa2.residents >= 3000].sort_values('places_within_20_free')[['sa2_name', 'residents', 'places_within_20_free', 'mean_min_city_free', 'mean_min_city_am']].head(10)
+big.sort_values(['share_half_free', 'places_within_20_free'])[['sa2_name', 'residents', 'share_half_free', 'places_within_20_free', 'mean_min_city_free']].head(10)
 ''')
 nb['cells'] = C
 nb['metadata'] = {'kernelspec': {'name': 'python3', 'display_name': 'Python 3', 'language': 'python'}}

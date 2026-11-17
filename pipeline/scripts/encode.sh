@@ -20,16 +20,16 @@ seq_ "$F/compare_16x9" 0 "$N" "$IMG/compare_16x9.mp4" 27
 seq_ "$F/compare_1x1" 0 "$N" "$IMG/compare_1x1.mp4" 27 720:720
 for x in "hero_free_16x9 hero_poster_16x9" "hero_free_1x1 hero_poster_1x1" "hero_am_1x1 hero_am_poster" "compare_16x9 compare_poster_16x9" "compare_1x1 compare_poster_1x1"; do set -- $x
   ffmpeg -y -loglevel error -i "$F/$1/$(printf %04d $POSTER).png" -q:v 3 "$IMG/$2.jpg"; done
-# LinkedIn, 1:1: the big number (4.5 s), the roads growing at the speed limit (all of it), the rush hour to its 20-minute
-# hold, car against public transport to 45 minutes, the eight places in two pages of four (5 s each), the end card
+# LinkedIn, 1:1 (trimmed 18 Nov to about 48 s): the roads growing at the speed limit to 60 minutes, the rush hour and
+# car against public transport each from about 6 minutes to their 20-minute hold, the eight places in two pages of four (5 s each), the end card
 card "$B/stills/open_1x1.png" 4.5 "$T/l1.mp4" 22
 card "$B/stills/clean_free_1x1.png" 1.2 "$T/l0.mp4" 22
-seq_ "$F/hero_free_1x1" 0 "$N" "$T/l2.mp4" 25
-seq_ "$F/hero_am_1x1" 0 285 "$T/l3.mp4" 25
-seq_ "$F/compare_1x1" 0 285 "$T/l4.mp4" 25
+seq_ "$F/hero_free_1x1" 0 $((N - 30)) "$T/l2.mp4" 25   # to 60 minutes, no end hold
+seq_ "$F/hero_am_1x1" 60 225 "$T/l3.mp4" 25   # from about 6 minutes to its 20-minute hold
+seq_ "$F/compare_1x1" 60 225 "$T/l4.mp4" 25
 card "$B/stills/grid4a_1x1.png" 5 "$T/l5.mp4" 22
 card "$B/stills/grid4b_1x1.png" 5 "$T/l6.mp4" 22
-card "$B/stills/end_1x1.png" 8 "$T/l7.mp4" 22
+card "$B/stills/end_1x1.png" 5 "$T/l7.mp4" 22
 # the shared cut opens on the map at its 20-minute moment, for the 2.2 s opener (videos-2026-11/openers: the big number
 # over this picture, then the roads grow from zero)
 SH="$OUTPUTS/videos-2026-11/adelaide-20-minutes"; mkdir -p "$SH"

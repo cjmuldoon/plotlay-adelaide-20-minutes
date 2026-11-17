@@ -34,14 +34,15 @@ dest = json.load(open(f'{B}/out/destinations.json'))
 tiles = ''.join(f'<figure class="sc-tile"><picture><source media="(max-width: 699px)" srcset="img/mini_{d}.jpg" width="540" height="600"><img src="img/mini_{d}.jpg" width="540" height="600" loading="lazy" alt="Map of Greater Adelaide: the land within 20 minutes by car of {TITLE[d].lower()} in orange, the rest in blue, the places as white dots."></picture>'
                 f'<figcaption><b>{TITLE[d]}</b><span class="sc-big">{pc(r(d)["within_20"])}</span><span>within 20 min at the speed limit</span><span class="sc-rush">Rush hour: {pc(r(d, "am")["within_20"])}</span></figcaption></figure>' for d in ORDER)
 rows = ''.join(f'<tr><th scope="row">{TITLE[d]}</th><td>{p1(r(d)["within_20"])}</td><td>{r(d)["median_min"]:.0f}</td><td>{p1(r(d, "am")["within_20"])}</td><td>{p1(r(d, "pt")["within_20"])}</td></tr>' for d in ORDER)
-rows += f'<tr class="sc-total"><th scope="row">All eight</th><td>{p1(A["free"]["within_20"])}</td><td>{A["free"]["median_min_for_all"]:.0f}</td><td>{p1(A["am"]["within_20"])}</td><td>{p1(A["pt"]["within_20"])}</td></tr>'
-best = N['sa2']['best'][:5]; worst = N['sa2']['worst'][:6]
-holds = ''.join(f'<li><b>{x["sa2_name"].replace(" - ", " and ")}</b>: {pc(x["share_all_eight_free"])} of {n0(x["residents"])} residents have all eight within 20 minutes.</li>' for x in best)
-fails = ''.join(f'<li><b>{x["sa2_name"].replace(" - ", " and ")}</b>: {x["places_within_20_free"]:.1f} of the eight on average; {x["mean_min_city_free"]:.0f} minutes to the city.</li>' for x in worst)
+rows += f'<tr class="sc-total"><th scope="row">Half or more (4 of 8)</th><td>{p1(A["free"]["half_20"])}</td><td></td><td>{p1(A["am"]["half_20"])}</td><td>{p1(A["pt"]["half_20"])}</td></tr>'
+rows += f'<tr><th scope="row">All eight</th><td>{p1(A["free"]["within_20"])}</td><td>{A["free"]["median_min_for_all"]:.0f}</td><td>{p1(A["am"]["within_20"])}</td><td>{p1(A["pt"]["within_20"])}</td></tr>'
+S2 = N['sa2']; best = S2['half_best'][:5]; worst = S2['half_worst'][:6]
+holds = ''.join(f'<li><b>{x["sa2_name"].replace(" - ", " and ")}</b>: {pc(x["share_half_free"])} of {n0(x["residents"])} residents have half the places or more; {pc(x["share_half_am"])} in the rush hour.</li>' for x in best)
+fails = ''.join(f'<li><b>{x["sa2_name"].replace(" - ", " and ")}</b>: {pc(x["share_half_free"])} have half or more; {x["places_within_20_free"]:.1f} of the eight on average, {x["mean_min_city_free"]:.0f} minutes to the city.</li>' for x in worst)
 hows = ''.join(f'<li><b>{TITLE[d]}</b>: {dest[d]["how"]}</li>' for d in ['cbd', 'beach', 'airport', 'hospital', 'uni', 'oval', 'hills', 'shops'])
-cd = A['free']['count_dist']
-desc = (f"For every Greater Adelaide resident, the drive to eight places: the city, a beach, the airport, an emergency department, a university, Adelaide Oval, the Hills and a shopping centre. "
-        f"At the speed limit with no traffic, {p1(A['free']['within_20'])} have all eight within 20 minutes; in the morning rush hour, none do.")
+cd = A['free']['count_dist']; F, AM, PTx = A['free'], A['am'], A['pt']
+desc = (f"For every Greater Adelaide resident, how many of eight places are within a 20-minute drive: the city, a beach, the airport, an emergency department, a university, Adelaide Oval, the Hills and a shopping centre. "
+        f"At the speed limit with no traffic, {p1(F['half_20'])} have half of them or more; in the morning rush hour, {p1(AM['half_20'])}.")
 page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -53,7 +54,7 @@ page = f"""<!doctype html>
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://www.getplotlay.com/showcase/adelaide-20-minutes/">
 <meta property="og:title" content="Is everything in Adelaide 20 minutes away?">
-<meta property="og:description" content="{p1(A['free']['within_20'])} of Adelaideans have all eight places within a 20-minute drive with no traffic. In the rush hour, nobody does.">
+<meta property="og:description" content="{p1(F['half_20'])} of Adelaideans have at least half of eight everyday places within a 20-minute drive with no traffic. In the rush hour, {p1(AM['half_20'])}.">
 <meta property="og:image" content="https://www.getplotlay.com/showcase/adelaide-20-minutes/img/hero_poster_16x9.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -77,42 +78,51 @@ page = f"""<!doctype html>
 <nav class="sc-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/showcase/">Showcases</a><span aria-hidden="true">/</span><span aria-current="page">Adelaide in 20 minutes</span></nav>
 <p class="sc-kicker">Showcase &middot; How far by car &middot; OpenStreetMap, TomTom and Adelaide Metro</p>
 <h1>Is everything in Adelaide 20 minutes away?</h1>
-<p class="sc-lede">Adelaideans say it about their city. We tested it for all {n0(N['residents'])} residents of Greater Adelaide and eight places: the city, a beach, the airport, an emergency department, a university, Adelaide Oval, the Hills and a shopping centre. <b>Driving at the speed limit with no traffic, {p1(A['free']['within_20'])} have all eight within 20 minutes. In the morning rush hour, at TomTom&rsquo;s measured slowdown, nobody does.</b> By public transport, nobody does either.</p>
+<p class="sc-lede">Adelaideans say it about their city. We tested it for all {n0(N['residents'])} residents of Greater Adelaide and eight places: the city, a beach, the airport, an emergency department, a university, Adelaide Oval, the Hills and a shopping centre. We read the saying as a general one, so the test is whether at least half the places, four of the eight, are within 20 minutes. <b>Driving at the speed limit with no traffic, {p1(F['half_20'])} of residents have four or more, and the typical resident has {F['median_count']:.0f}. In the morning rush hour, at TomTom&rsquo;s measured slowdown, {p1(AM['half_20'])} do: a little under half, with a typical {AM['median_count']:.0f}.</b> By public transport, {p1(PTx['half_20'])}. Read literally, all eight, the saying holds for {p1(F['within_20'])} at the speed limit and nobody in the rush hour.</p>
 {anim('hero', 'Animation: a dark map of Greater Adelaide. From the GPO the roads light up minute by minute, gold inside 20 minutes and blue after it, while a counter of residents reached climbs to 48% at 20 minutes, where the edge pulses, and to 99% at 45.', f'From the GPO, minute by minute, at the speed limit with no traffic. The counter is the share of Greater Adelaide&rsquo;s residents who can reach the GPO within that many minutes. At 20 minutes it is {p1(r("cbd")["within_20"])}.')}
 <div class="sc-cta"><a class="sc-btn sc-btn-main" href="https://app.plotlay.io/?example=adelaide-20-minutes&amp;as=client">Open in Plotlay<span>Play the roads, compare car and public transport. No account needed.</span></a><a class="sc-btn" href="downloads/adelaide-20-minutes-data.zip" download>The data<span>Minutes per mesh block to each place, by area, and the method</span></a><a class="sc-btn repo-link" href="{REPO}">Data and notebook on GitHub<span>The plotlay-adelaide-20-minutes repository</span></a></div>
 
 <div class="sc-stats">
-<div><b>{p1(A['free']['within_20'])}</b><span>have all eight within 20 min at the speed limit, no traffic</span></div>
-<div><b>0%</b><span>have all eight within 20 min in the morning rush hour (TomTom 2025 slowdown)</span></div>
-<div><b>{pc(r('cbd')['within_20'])}</b><span>reach the city within 20 min at the speed limit; {pc(r('cbd', 'am')['within_20'])} in the rush hour (TomTom)</span></div>
-<div><b>{p1(r('cbd', 'pt')['within_20'])}</b><span>reach the city within 20 min by public transport</span></div>
+<div><b>{p1(F['half_20'])}</b><span>have half the places or more within 20 min at the speed limit, no traffic</span></div>
+<div><b>{p1(AM['half_20'])}</b><span>have half or more in the morning rush hour (TomTom 2025 slowdown)</span></div>
+<div><b>{p1(PTx['half_20'])}</b><span>have half or more by public transport</span></div>
+<div><b>{p1(F['within_20'])}</b><span>have all eight at the speed limit; nobody in the rush hour (TomTom)</span></div>
 </div>
 
 <h2>Read this first</h2>
 <p><b>&ldquo;At the speed limit, no traffic&rdquo;</b> means every road driven at its posted limit, with a stated wait at each set of traffic lights and at junctions, and nothing else in the way: the best a trip can be. Real trips are slower. <b>The rush hour</b> applies the slowdown TomTom measured for Adelaide in 2025: trips at the morning peak took 58.5% longer than at free flow on ordinary roads and 24.6% longer on motorways (<a href="https://www.tomtom.com/traffic-index/adelaide-traffic/">TomTom Traffic Index 2025</a>). That is a city-wide average over the year, applied to every road of its kind. It is not a traffic forecast and it does not know which roads jam.</p>
 
+<h2>Half the places or more</h2>
+<p>Each mesh block is coloured by how many of the eight places its residents reach within 20 minutes: blue for three or fewer, warm for four or more. At the speed limit with no traffic, {p1(F['half_20'])} of residents ({n0(F['half_people_20'])}) are on the warm side of that line, and the typical resident has {F['median_count']:.0f} of the eight. The line runs through the outer suburbs: from Port Adelaide, Enfield and Mawson Lakes south to Reynella, Morphett Vale and Christies Beach nearly everyone is above it; Salisbury is split, and Elizabeth, Golden Grove, Seaford Rise, Aldinga and the Hills are below it. Much of the blue is farmland with few people; the shares are of residents, not of land.</p>
+{fig('mbmap_free_16x9.jpg', 'Map of Greater Adelaide with every mesh block coloured by how many of the eight places are within 20 minutes by car at the speed limit: warm colours, four or more, across the plains from the city to the coast and the inner south; blues in the Hills, the far north and the far south. A key gives 8 places 10%, 7 places 26%, 6 places 8%, 5 places 10%, 4 places 18%, 3 places 23%, 2 places 4%, 1 place 1%.', 'Every mesh block with residents, at the speed limit with no traffic. Drawn from the pipeline&rsquo;s minutes over Plotlay&rsquo;s Ink base map.')}
+<p>In the rush hour the answer sits close to the line. At TomTom&rsquo;s morning slowdown {p1(AM['half_20'])} have four or more and the typical resident has {AM['median_count']:.0f}; the evening peak gives {p1(A['pm']['half_20'])}. Because it is close, here are the thresholds either side: three or more places within 20 minutes for {p1(F['at_least_3'])} at the speed limit, {p1(AM['at_least_3'])} in the rush hour and {p1(PTx['at_least_3'])} by public transport; five or more for {p1(F['at_least_5'])}, {p1(AM['at_least_5'])} and {p1(PTx['at_least_5'])}.</p>
+{fig('mbmap_am_16x9.jpg', 'The same map in the morning rush hour: the warm area shrinks to the city, the inner south and a band along the coast; most of the suburbs turn blue. Key: 7 places 7%, 6 places 5%, 5 places 12%, 4 places 20%, 3 places 31%, 2 places 20%, 1 place 5%, none 1%.', 'The morning rush hour, at the TomTom Traffic Index 2025 slowdown.')}
+{fig('chart_count_16x9.png', f'Column chart of residents by how many of the eight places are within 20 minutes, from none to eight, by car at the speed limit, by car in the rush hour and by public transport. At the speed limit the largest groups are seven places (26%) and three places (23%); in the rush hour three places (31%); by public transport none ({PTx["count_dist"][0] * 100:.0f}%) and one ({PTx["count_dist"][1] * 100:.0f}%).', 'Made in Plotlay&rsquo;s Analysis page from the pipeline&rsquo;s numbers. Rush hour: TomTom Traffic Index 2025.')}
+
 <h2>Eight places, one at a time</h2>
-<p>The saying holds for the everyday places. {p1(r('shops')['within_20'])} of residents live within 20 minutes of a shopping centre and {p1(r('hospital')['within_20'])} of a public emergency department, even at TomTom&rsquo;s rush-hour slowdown ({pc(r('shops', 'am')['within_20'])} and {pc(r('hospital', 'am')['within_20'])}). It breaks on the places Adelaide has only one of. Half the city is within 20 minutes of the GPO ({p1(r('cbd')['within_20'])}) or Adelaide Oval ({p1(r('oval')['within_20'])}), {p1(r('airport')['within_20'])} of the airport, and a quarter of the Hills ({p1(r('hills')['within_20'])}).</p>
+<p>The saying holds for the everyday places. {p1(r('shops')['within_20'])} of residents live within 20 minutes of a shopping centre and {p1(r('hospital')['within_20'])} of a public emergency department, even at TomTom&rsquo;s rush-hour slowdown ({pc(r('shops', 'am')['within_20'])} and {pc(r('hospital', 'am')['within_20'])}). It breaks on the places Adelaide has only one of. Half of Greater Adelaide is within 20 minutes of the GPO ({p1(r('cbd')['within_20'])}) or Adelaide Oval ({p1(r('oval')['within_20'])}), {p1(r('airport')['within_20'])} of the airport, and a quarter of the Hills ({p1(r('hills')['within_20'])}).</p>
 <div class="sc-grid8">{tiles}</div>
 <p class="sc-count">Each map: the land within 20 minutes by car at the speed limit in orange, further in blue, inside Greater Adelaide. Rush hour: at the TomTom Traffic Index 2025 slowdown. The share is of residents, counted by mesh block.</p>
-{fig('chart_share_16x9.png', 'Bar chart of the share of residents within 20 minutes of each place by car at the speed limit, by car in the rush hour and by public transport: a shopping centre 99, 98 and 37 percent; an emergency department 94, 79 and 5; a university campus 92, 65 and 5; a beach 62, 41 and 7; Adelaide Oval 51, 24 and 1; the city 48, 22 and 2; the airport 40, 15 and 0; the Hills 25, 9 and 0; all eight 10, 0 and 0.', 'Made in Plotlay&rsquo;s Analysis page from the pipeline&rsquo;s numbers.')}
+{fig('chart_share_16x9.png', 'Bar chart of the share of residents within 20 minutes of each place by car at the speed limit, by car in the rush hour and by public transport: a shopping centre 99, 98 and 37 percent; an emergency department 94, 79 and 5; a university campus 92, 65 and 5; a beach 62, 41 and 7; Adelaide Oval 51, 24 and 1; the city 48, 22 and 2; the airport 40, 15 and 0; the Hills 25, 9 and 0; half or more 72, 43 and 1; all eight 10, 0 and 0.', 'Made in Plotlay&rsquo;s Analysis page from the pipeline&rsquo;s numbers.')}
 <div class="sc-scroll"><table class="sc-src-table sc-t5">
-<caption>Share of residents within 20 minutes, and the median trip by car at the speed limit</caption>
+<caption>Share of residents within 20 minutes, and the median trip by car at the speed limit. Rush hour: TomTom Traffic Index 2025 slowdown.</caption>
 <thead><tr><th>Place</th><th>Car, speed limit</th><th>Median, min</th><th>Car, rush hour</th><th>Public transport</th></tr></thead>
 <tbody>{rows}</tbody>
 </table></div>
 
-<h2>All eight</h2>
-<p>To have everything within 20 minutes you have to live in the middle: the inner south and the city. At the speed limit, {p1(A['free']['within_20'])} of residents ({n0(A['free']['people_20'])}) have all eight; {p1(cd[7])} have seven of them, usually all but the Hills or the airport. Leave those two out and {p1(A['free']['six_no_hills_airport_20'])} have the other six. The typical resident needs {A['free']['median_min_for_all']:.0f} minutes to have all eight; at TomTom&rsquo;s morning rush-hour slowdown, {A['am']['median_min_for_all']:.0f} minutes.</p>
-{fig('map_areas_16x9.jpg', 'Map of Greater Adelaide by area, coloured by how many of the eight places are within 20 minutes by car on average: seven or more in the inner south and the city, five to seven in the middle suburbs, one to three in the Hills, the far north and the far south.', 'Made in Plotlay: the areas map picture on the Ink base map, from the example.')}
+<h2>Where it holds and where it fails</h2>
+{fig('map_areas_16x9.jpg', 'Map of Greater Adelaide by area, coloured by the share of residents with half the places or more within 20 minutes by car: 90% or more across the plains from the city to the coast, the inner north and the inner south; under 10% in the Hills, Mount Barker, Gawler, the far north and the far south.', 'Made in Plotlay: the areas map picture on the Ink base map, from the example.')}
 <div class="sc-pair">
 <div><h3>Where it holds</h3><ul class="sc-list">{holds}</ul></div>
 <div><h3>Where it fails</h3><ul class="sc-list">{fails}</ul></div>
 </div>
-<p class="sc-count">ABS Statistical Areas Level 2 with 3,000 residents or more, at the speed limit with no traffic. In {N['sa2']['holds_free']} of {N['sa2']['count']} areas most residents have all eight.</p>
+<p class="sc-count">ABS Statistical Areas Level 2 with 3,000 residents or more, at the speed limit with no traffic. In {S2['half_holds_free']} of {S2['big']} areas most residents have half the places or more ({S2['half_holds_am']} at the TomTom rush-hour slowdown); in {S2['half_none_free']}, fewer than one in ten do.</p>
+
+<h2>All eight: the strict reading</h2>
+<p>To have everything within 20 minutes you have to live in the middle: the inner south and the city. At the speed limit, {p1(A['free']['within_20'])} of residents ({n0(A['free']['people_20'])}) have all eight; {p1(cd[7])} have seven of them, usually all but the Hills or the airport. Leave those two out and {p1(A['free']['six_no_hills_airport_20'])} have the other six. The typical resident needs {A['free']['median_min_for_all']:.0f} minutes to have all eight; at TomTom&rsquo;s morning rush-hour slowdown, {A['am']['median_min_for_all']:.0f} minutes. In {N['sa2']['holds_free']} of {N['sa2']['count']} areas most residents have all eight.</p>
 
 <h2>The rush hour</h2>
-<p>The same trips at TomTom&rsquo;s morning-peak slowdown. The share within 20 minutes of the GPO falls from {p1(r('cbd')['within_20'])} to {p1(r('cbd', 'am')['within_20'])}, and the median trip to it rises from {r('cbd')['median_min']:.0f} to {r('cbd', 'am')['median_min']:.0f} minutes. Nobody has all eight within 20 minutes. The evening peak (62.7% longer on ordinary roads, 9.8% on motorways) gives almost the same answer: {p1(r('cbd', 'pm')['within_20'])} within 20 minutes of the GPO.</p>
+<p>The same trips at TomTom&rsquo;s morning-peak slowdown. The share within 20 minutes of the GPO falls from {p1(r('cbd')['within_20'])} to {p1(r('cbd', 'am')['within_20'])}, and the median trip to it rises from {r('cbd')['median_min']:.0f} to {r('cbd', 'am')['median_min']:.0f} minutes. {p1(AM['half_20'])} have half the places or more and nobody has all eight. The evening peak (62.7% longer on ordinary roads, 9.8% on motorways) gives almost the same answer: {p1(r('cbd', 'pm')['within_20'])} within 20 minutes of the GPO.</p>
 <div class="sc-pair">
 {fig('chart_minutes_free_16x9.png', 'Column chart of residents by minutes to the GPO at the speed limit: most between 10 and 30 minutes, the bars up to 20 minutes in blue and after it in orange.', 'At the speed limit, no traffic.')}
 {fig('chart_minutes_am_16x9.png', 'Column chart of residents by minutes to the GPO in the morning rush hour: the bars spread out to 60 minutes, most of them past 20.', 'In the morning rush hour: TomTom Traffic Index 2025.')}
@@ -120,7 +130,7 @@ page = f"""<!doctype html>
 {anim('hero_am', 'Animation: the same map in the morning rush hour. The gold area inside 20 minutes is much smaller and the counter reaches 22% at 20 minutes.', f'The morning rush hour, minute by minute: {p1(r("cbd", "am")["within_20"])} reach the GPO within 20 minutes. Slowdown from the TomTom Traffic Index 2025.', wide=False)}
 
 <h2>By public transport</h2>
-<p>Adelaide Metro&rsquo;s timetable, arriving between 8 and 9 am on a weekday, the median trip, walking up to {PT['walk_max_m']:,} m to the first stop and at most {PT['transfers']} changes. {p1(r('cbd', 'pt')['within_20'])} of residents reach the GPO within 20 minutes and nobody has all eight. The closest to the saying is the shopping centre: {p1(r('shops', 'pt')['within_20'])} of residents are within 20 minutes of one. The median trip to the city is {r('cbd', 'pt')['median_min']:.0f} minutes, against {r('cbd')['median_min']:.0f} by car at the speed limit.</p>
+<p>Adelaide Metro&rsquo;s timetable, arriving between 8 and 9 am on a weekday, the median trip, walking up to {PT['walk_max_m']:,} m to the first stop and at most {PT['transfers']} changes. {p1(r('cbd', 'pt')['within_20'])} of residents reach the GPO within 20 minutes, {p1(PTx['half_20'])} have half the places or more, and {p1(PTx['none'])} have none of the eight within 20 minutes. The closest to the saying is the shopping centre: {p1(r('shops', 'pt')['within_20'])} of residents are within 20 minutes of one. The median trip to the city is {r('cbd', 'pt')['median_min']:.0f} minutes, against {r('cbd')['median_min']:.0f} by car at the speed limit.</p>
 {anim('compare', 'Animation: two maps side by side, by car on the left and by public transport on the right, growing from the GPO on the same clock with a counter each. At 20 minutes the car has reached 48% of residents and public transport 2%.', 'The car at the speed limit and public transport on the same clock, to the GPO. Public transport counts the walk at each end and the wait; the car counts none of the parking.')}
 
 <h2 id="how">How it was made in Plotlay</h2>
@@ -128,7 +138,7 @@ page = f"""<!doctype html>
 <li><b>The roads</b>: OpenStreetMap&rsquo;s roads for Greater Adelaide ({NET['km']:,} km), read with <b>How far by car</b> and <b>Road rules</b> on: {NET['one_way_stretches']:,} one-way stretches, {NET['turn_bans']:,} turn bans, {NET['signal_nodes']:,} traffic-signal nodes in {NET['sets_of_lights']:,} sets of lights. Speeds are the speed limits.</li>
 <li><b>The trips</b>: from every one of {n0(N['mesh_block_parts'])} mesh blocks with residents to the nearest of each kind of place, the quickest route by road. Once at the speed limit, once at TomTom&rsquo;s morning and evening slowdowns.</li>
 <li><b>Public transport</b>: <b>How far by public transport</b> on Adelaide Metro&rsquo;s GTFS feed, arriving 8 to 9 am on Tuesday 17 November 2026.</li>
-<li><b>Compare travel times</b> counts the residents within 20 minutes by each answer, by all and by any.</li>
+<li><b>Compare travel times</b> counts the residents within 20 minutes by each answer, by all and by any; how many of the eight each mesh block reaches comes from the same minutes.</li>
 <li>The bands to the GPO in the <b>Flow look</b>, which plays minute by minute; the charts on the <b>Analysis</b> page. The animations on this page draw the same Flow segments from Plotlay&rsquo;s engine over Plotlay&rsquo;s Ink base map, with the counter added.</li>
 </ol>
 <div class="sc-pair">
@@ -141,17 +151,18 @@ page = f"""<!doctype html>
 <ul class="sc-caveats">{hows}</ul>
 
 <h2>Python and Power BI</h2>
-<p>A Jupyter notebook reads the minutes for each mesh block and gets the same shares, the all-eight count and the table by area. <code>mesh_block_minutes.csv</code> and <code>sa2.csv</code> open in Power BI Desktop with Get data, Text/CSV; each mesh block has its latitude and longitude for a map visual.</p>
+<p>A Jupyter notebook reads the minutes for each mesh block and gets the same shares, the half-or-more and all-eight counts, the distribution from none to eight, and the table by area. <code>mesh_block_minutes.csv</code> and <code>sa2.csv</code> open in Power BI Desktop with Get data, Text/CSV; each mesh block has its latitude and longitude for a map visual.</p>
 <p><a class="sc-link" href="downloads/adelaide_20_minutes.ipynb" download>Download the notebook</a> and <a class="sc-link" href="downloads/adelaide-20-minutes-data.zip" download>the data</a>. Both are in the <a class="sc-link repo-link" href="{REPO}">plotlay-adelaide-20-minutes repository on GitHub</a>.</p>
 
 <h2>Read it carefully</h2>
 <ul class="sc-caveats">
+<li><b>Half is our reading.</b> The saying is loose; four of eight is the line we chose, and the shares at three and five are given above so you can pick your own.</li>
 <li><b>Not a traffic forecast.</b> The rush hour is TomTom&rsquo;s 2025 average slowdown for Adelaide, applied to every road of its kind. A real peak is worse on some roads and better on others.</li>
 <li><b>Door to door, without parking.</b> Each trip starts at the middle of a mesh block and ends at the place&rsquo;s entrance or a point on it. Finding a park at the Oval or the airport is not counted; public transport counts the walk and the wait.</li>
 <li><b>The waits are assumptions.</b> 12 seconds for each set of lights (Webster&rsquo;s average delay for a 100-second cycle at half green), and 4 to 10 seconds to give way at a junction by the turn made. Turn bans with a via way ({NET['turn_bans_left_out']['via_way']:,} in Adelaide) are left out.</li>
 <li><b>Speed limits are as mapped.</b> Where OpenStreetMap has no limit, the Australian default applies: 50 km/h in built-up areas, 100 km/h outside them.</li>
 <li><b>The nearest of each kind</b>, not the one people use. A family at the Women&rsquo;s and Children&rsquo;s, or a student at a campus across town, may drive further. With the Women&rsquo;s and Children&rsquo;s, Gawler and Mount Barker emergency departments counted, {p1(r('hospital9')['within_20'])} are within 20 minutes of one.</li>
-<li><b>A different speed model.</b> With Plotlay&rsquo;s older typical speeds by kind of road (no lights, no turn bans), {p1(A['typical']['within_20'])} would have all eight. The road rules make the answer more cautious and, we think, closer to a real drive.</li>
+<li><b>A different speed model.</b> With Plotlay&rsquo;s older typical speeds by kind of road (no lights, no turn bans), {p1(A['typical']['half_20'])} would have half the places or more and {p1(A['typical']['within_20'])} all eight. The road rules make the answer more cautious and, we think, closer to a real drive.</li>
 <li>Residents from the 2021 Census by mesh block; OpenStreetMap as at 13 November 2026; Adelaide Metro feed version {PT['feed_version']}.</li>
 </ul>
 

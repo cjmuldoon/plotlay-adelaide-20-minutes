@@ -38,7 +38,11 @@ for run in RUNS:
     cnt = [sum(1 for k in range(len(IDS)) if M[k][i] <= 20) for i in range(len(H))]
     N['all'][run] = {'within_20': r3(share([v <= 20 for v in far])), 'people_20': round(sum(w for w, v in zip(W, far) if v <= 20)), 'median_min_for_all': wmedian(far),
                      'count_dist': [r3(share([c == n for c in cnt])) for n in range(len(IDS) + 1)], 'mean_count': round(sum(w * c for w, c in zip(W, cnt)) / TOT, 2),
-                     'within_30': r3(share([v <= 30 for v in far])), 'within_40': r3(share([v <= 40 for v in far]))}
+                     'within_30': r3(share([v <= 30 for v in far])), 'within_40': r3(share([v <= 40 for v in far])),
+                     # the headline (the owner, 18 Nov): half the places or more, 4 of the 8, with 3 and 5 as the sensitivity
+                     'half_20': r3(share([c >= 4 for c in cnt])), 'half_people_20': round(sum(w for w, c in zip(W, cnt) if c >= 4)),
+                     'at_least_3': r3(share([c >= 3 for c in cnt])), 'at_least_5': r3(share([c >= 5 for c in cnt])), 'none': r3(share([c == 0 for c in cnt])),
+                     'median_count': wmedian(cnt)}
 # without the Hills and the airport (the two far ends): the six others
 for run in ['free', 'am', 'pt']:
     six = ['cbd', 'beach', 'hospital', 'uni', 'oval', 'shops']
@@ -61,11 +65,12 @@ for f in gj['features']: names[str(f['properties']['code'])] = f['properties']['
 by = {}
 Mf = [mins('free', d) for d in IDS]; Ma = [mins('am', d) for d in IDS]; Mp = [mins('pt', d) for d in IDS]
 for i, h in enumerate(H):
-    s = by.setdefault(h['sa2'], {'people': 0, 'all_free': 0, 'all_am': 0, 'cnt_free': 0, 'cnt_am': 0, 'cnt_pt': 0, 'cbd_free': 0, 'cbd_am': 0, 'cbd_pt': 0, 'cbd_pt_n': 0, **{f'{d}_free': 0 for d in IDS}})
+    s = by.setdefault(h['sa2'], {'people': 0, 'all_free': 0, 'all_am': 0, 'half_free': 0, 'half_am': 0, 'half_pt': 0, 'cnt_free': 0, 'cnt_am': 0, 'cnt_pt': 0, 'cbd_free': 0, 'cbd_am': 0, 'cbd_pt': 0, 'cbd_pt_n': 0, **{f'{d}_free': 0 for d in IDS}})
     w = W[i]; s['people'] += w
     cf = sum(1 for k in range(8) if Mf[k][i] <= 20); ca = sum(1 for k in range(8) if Ma[k][i] <= 20); cp = sum(1 for k in range(8) if Mp[k][i] <= 20)
     s['cnt_free'] += w * cf; s['cnt_am'] += w * ca; s['cnt_pt'] += w * cp
     s['all_free'] += w * (cf == 8); s['all_am'] += w * (ca == 8)
+    s['half_free'] += w * (cf >= 4); s['half_am'] += w * (ca >= 4); s['half_pt'] += w * (cp >= 4)
     for k, d in enumerate(IDS): s[f'{d}_free'] += w * (Mf[k][i] <= 20)
     s['cbd_free'] += w * Mf[0][i]; s['cbd_am'] += w * Ma[0][i]
     if Mp[0][i] < INF: s['cbd_pt'] += w * Mp[0][i]; s['cbd_pt_n'] += w
@@ -74,7 +79,7 @@ rows = []
 for code, s in by.items():
     p = s['people']
     if p < 1: continue
-    rows.append({'sa2_code': code, 'sa2_name': names.get(code, code), 'residents': round(p), 'share_all_eight_free': r3(s['all_free'] / p), 'share_all_eight_am': r3(s['all_am'] / p),
+    rows.append({'sa2_code': code, 'sa2_name': names.get(code, code), 'residents': round(p), 'share_half_free': r3(s['half_free'] / p), 'share_half_am': r3(s['half_am'] / p), 'share_half_pt': r3(s['half_pt'] / p), 'share_all_eight_free': r3(s['all_free'] / p), 'share_all_eight_am': r3(s['all_am'] / p),
                  'places_within_20_free': round(s['cnt_free'] / p, 2), 'places_within_20_am': round(s['cnt_am'] / p, 2), 'places_within_20_pt': round(s['cnt_pt'] / p, 2),
                  'mean_min_city_free': round(s['cbd_free'] / p, 1), 'mean_min_city_am': round(s['cbd_am'] / p, 1), 'mean_min_city_pt': round(s['cbd_pt'] / s['cbd_pt_n'], 1) if s['cbd_pt_n'] else None,
                  **{f'share_{d}_free': r3(s[f'{d}_free'] / p) for d in IDS}})
@@ -82,7 +87,12 @@ rows.sort(key=lambda r: (-r['places_within_20_free'], r['mean_min_city_free']))
 with open(os.path.join(B, 'tables/sa2.csv'), 'w', newline='') as f:
     wr = csv.DictWriter(f, fieldnames=list(rows[0].keys())); wr.writeheader(); wr.writerows(rows)
 big = [r for r in rows if r['residents'] >= 3000]
-N['sa2'] = {'count': len(rows), 'best': sorted(big, key=lambda r: (-r['share_all_eight_free'], -r['places_within_20_free']))[:10],
+N['sa2'] = {'count': len(rows), 'big': len(big),
+            'half_best': sorted(big, key=lambda r: (-r['share_half_free'], -r['places_within_20_free']))[:10],
+            'half_worst': sorted(big, key=lambda r: (r['share_half_free'], r['places_within_20_free']))[:10],
+            'half_holds_free': sum(1 for r in big if r['share_half_free'] >= 0.5), 'half_holds_am': sum(1 for r in big if r['share_half_am'] >= 0.5),
+            'half_fails_free': sum(1 for r in big if r['share_half_free'] < 0.5), 'half_none_free': sum(1 for r in big if r['share_half_free'] < 0.1),
+            'best': sorted(big, key=lambda r: (-r['share_all_eight_free'], -r['places_within_20_free']))[:10],
             'worst': sorted(big, key=lambda r: (r['places_within_20_free'], -r['mean_min_city_free']))[:10],
             'holds_free': sum(1 for r in rows if r['share_all_eight_free'] >= 0.5), 'holds_am': sum(1 for r in rows if r['share_all_eight_am'] >= 0.5)}
 # per destination table
@@ -97,4 +107,7 @@ for run, a in N['all'].items(): print('ALL', run, pct(a['within_20']), a['people
 print('hosp9 free', N['destinations']['hospital9']['runs']['free'])
 print('best', [(r['sa2_name'], r['share_all_eight_free']) for r in N['sa2']['best']])
 print('worst', [(r['sa2_name'], r['places_within_20_free']) for r in N['sa2']['worst']])
+for run, a in N['all'].items(): print('HALF', run, a['half_20'], 'median count', a['median_count'], '3+', a['at_least_3'], '5+', a['at_least_5'])
+print('half best', [(r['sa2_name'], r['share_half_free']) for r in N['sa2']['half_best']][:6]); print('half worst', [(r['sa2_name'], r['share_half_free'], r['share_half_am']) for r in N['sa2']['half_worst']][:8])
+print('big SA2s', N['sa2']['big'], 'half holds free', N['sa2']['half_holds_free'], 'am', N['sa2']['half_holds_am'], 'under 10% free', N['sa2']['half_none_free'])
 print('SA2s where most have all eight, free', N['sa2']['holds_free'], 'am', N['sa2']['holds_am'], 'of', len(rows))
