@@ -1,0 +1,44 @@
+destination,run,share_within_20,residents_within_20,median_min,share_within_15,share_within_30,share_not_reached
+The city (GPO),"By car, little traffic",0.483,670316,20.6,0.322,0.784,0.0
+The city (GPO),"By car, morning rush hour",0.215,297788,31.9,0.093,0.458,0.0
+The city (GPO),"By car, evening rush hour",0.2,277054,32,0.085,0.451,0.0
+The city (GPO),"By car, typical speeds (older model)",0.706,978943,14.5,0.52,0.939,0.0
+The city (GPO),"By public transport, arriving 8 to 9 am",0.021,28552,50,0.014,0.087,0.09
+The nearest beach,"By car, little traffic",0.619,858004,16.5,0.459,0.907,0.0
+The nearest beach,"By car, morning rush hour",0.409,567005,25,0.316,0.613,0.0
+The nearest beach,"By car, evening rush hour",0.402,558216,24.8,0.309,0.614,0.0
+The nearest beach,"By car, typical speeds (older model)",0.755,1047717,13.2,0.572,0.944,0.0
+The nearest beach,"By public transport, arriving 8 to 9 am",0.071,98001,68,0.041,0.154,0.114
+Adelaide Airport,"By car, little traffic",0.396,548685,24,0.225,0.733,0.0
+Adelaide Airport,"By car, morning rush hour",0.151,208809,36.3,0.071,0.372,0.0
+Adelaide Airport,"By car, evening rush hour",0.141,195776,36.3,0.067,0.357,0.0
+Adelaide Airport,"By car, typical speeds (older model)",0.577,799798,18.3,0.398,0.882,0.0
+Adelaide Airport,"By public transport, arriving 8 to 9 am",0.003,4707,78,0.001,0.016,0.127
+The nearest public emergency department,"By car, little traffic",0.935,1296487,9.8,0.878,0.97,0.0
+The nearest public emergency department,"By car, morning rush hour",0.791,1097629,15.3,0.485,0.931,0.0
+The nearest public emergency department,"By car, evening rush hour",0.77,1067497,15.6,0.467,0.93,0.0
+The nearest public emergency department,"By car, typical speeds (older model)",0.951,1319479,7.4,0.914,0.991,0.0
+The nearest public emergency department,"By public transport, arriving 8 to 9 am",0.047,65646,40,0.018,0.216,0.089
+The nearest university campus,"By car, little traffic",0.923,1279411,11.1,0.754,0.99,0.0
+The nearest university campus,"By car, morning rush hour",0.649,899549,17.2,0.397,0.939,0.0
+The nearest university campus,"By car, evening rush hour",0.643,892142,17.4,0.386,0.947,0.0
+The nearest university campus,"By car, typical speeds (older model)",0.947,1313557,8.6,0.851,0.995,0.0
+The nearest university campus,"By public transport, arriving 8 to 9 am",0.05,69949,44,0.022,0.198,0.084
+Adelaide Oval,"By car, little traffic",0.513,711530,19.6,0.35,0.805,0.0
+Adelaide Oval,"By car, morning rush hour",0.239,331221,30.5,0.107,0.491,0.0
+Adelaide Oval,"By car, evening rush hour",0.222,307691,30.7,0.097,0.484,0.0
+Adelaide Oval,"By car, typical speeds (older model)",0.709,982920,14.6,0.518,0.936,0.0
+Adelaide Oval,"By public transport, arriving 8 to 9 am",0.012,16244,54,0.004,0.053,0.091
+The Hills (Hahndorf or Mount Lofty),"By car, little traffic",0.246,341315,27.3,0.125,0.595,0.0
+The Hills (Hahndorf or Mount Lofty),"By car, morning rush hour",0.086,118820,42.4,0.03,0.234,0.0
+The Hills (Hahndorf or Mount Lofty),"By car, evening rush hour",0.084,116669,42.9,0.03,0.229,0.0
+The Hills (Hahndorf or Mount Lofty),"By car, typical speeds (older model)",0.372,515399,22.7,0.178,0.766,0.0
+The Hills (Hahndorf or Mount Lofty),"By public transport, arriving 8 to 9 am",0.002,2278,105,0.001,0.004,0.315
+The nearest shopping centre,"By car, little traffic",0.994,1378601,3.5,0.984,1.0,0.0
+The nearest shopping centre,"By car, morning rush hour",0.976,1353324,5.4,0.946,0.994,0.0
+The nearest shopping centre,"By car, evening rush hour",0.975,1352675,5.6,0.943,0.993,0.0
+The nearest shopping centre,"By car, typical speeds (older model)",0.994,1379252,2.7,0.987,1.0,0.0
+The nearest shopping centre,"By public transport, arriving 8 to 9 am",0.374,518383,24,0.193,0.717,0.08
+"Emergency departments with the Women’s and Children’s, Gawler and Mount Barker","By car, little traffic",0.985,1365856,9.1,0.935,1.0,0.0
+"Emergency departments with the Women’s and Children’s, Gawler and Mount Barker","By car, morning rush hour",0.857,1188583,14.3,0.552,0.983,0.0
+"Emergency departments with the Women’s and Children’s, Gawler and Mount Barker","By car, evening rush hour",0.843,1168992,14.6,0.533,0.982,0.0
